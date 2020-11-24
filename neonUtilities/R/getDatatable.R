@@ -66,13 +66,6 @@ getDatatable <- function(
   # remove _pub suffix
   data_table_name <- gsub('(?i)_pub', '', data_table_name)
 
-  # required name spaces for this function
-  requireNamespace('dplyr')
-  requireNamespace('lubridate')
-  requireNamespace('readr')
-  requireNamespace('httr')
-  requireNamespace('jsonlite')
-
   floor_date_min <- as.Date(sample_date_min, format = sample_date_format) %>%
     lubridate::floor_date(., unit = 'months') %>% format(., '%Y-%m-%d')
   floor_date_max <- as.Date(sample_date_max, format = sample_date_format) %>%

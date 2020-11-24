@@ -20,10 +20,6 @@
 
 ##############################################################################################
 getReadmePublicationDate <- function(savepath, out_filepath, dpID) {
-  requireNamespace('stringr', quietly = TRUE)
-  requireNamespace('dplyr', quiet=TRUE)
-  requireNamespace('magrittr', quiet=TRUE)
-  requireNamespace('stringr', quiet=TRUE)
 
   dpnum <- substring(dpID, 5, 9)
   out_filepath_name <- paste0(out_filepath, '/readme_', dpnum, '.txt')

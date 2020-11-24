@@ -43,10 +43,6 @@ getTaxonTable <- function(
   # set options
   options(stringsAsFactors = FALSE)
 
-  # required packages
-  requireNamespace('httr')
-  requireNamespace('jsonlite')
-
   url_prefix = 'http://data.neonscience.org/api/v0/taxonomy?taxonTypeCode=' #hard code endpoint into function
   url_to_get <- as.character(paste0(url_prefix, taxonType))
 

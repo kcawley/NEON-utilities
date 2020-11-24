@@ -32,7 +32,6 @@
 stackDataFilesParallel <- function(folder, nCores=1, dpID){
   
   starttime <- Sys.time()
-  requireNamespace("dplyr", quietly=T)
 
   messages <- character()
   
