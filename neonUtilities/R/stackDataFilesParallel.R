@@ -32,11 +32,8 @@
 stackDataFilesParallel <- function(folder, nCores=1, dpID){
   
   starttime <- Sys.time()
-  requireNamespace('stringr', quietly = TRUE)
-  requireNamespace('dplyr', quietly = TRUE)
-  requireNamespace("magrittr", quietly = TRUE)
-  requireNamespace('data.table', quietly = TRUE)
-  
+  requireNamespace("dplyr", quietly=T)
+
   messages <- character()
   
   # get the in-memory list of table types (site-date, site-all, etc.). This list must be updated often.
@@ -96,7 +93,7 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
     # for new tables, always use inferred types. for mismatches, decide based on publication dates
     if(!is.null(nrow(newtables))) {
       cat("Table(s)", newtables[,1], "are unexpected. Stacking will proceed based on inferred table format; check for updates to neonUtilities.\n")
-      ttypes <- plyr::rbind.fill(ttypes, newtables)
+      ttypes <- data.table::rbindlist(list(ttypes, newtables), fill=T)
     }
     
     if(mis>0) {
@@ -238,20 +235,15 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
         tblfls <- file_list
       }
       
-      stackedDf <- do.call(plyr::rbind.fill, pbapply::pblapply(tblfls, function(x, tables_i, variables, assignClasses, 
-                                                      makePosColumns) {
-
-        stackedDf <- suppressWarnings(data.table::fread(x, header=TRUE, encoding="UTF-8", keepLeadingZeros = TRUE)) %>%
-          assignClasses(., variables) %>%
-          makePosColumns(., basename(x))
-        
-        return(stackedDf)
-      },
-      tables_i=tables[i], variables=variables,
-      assignClasses=assignClasses,
-      makePosColumns=makePosColumns, cl=cl
-      ))
-
+      stackingList <- pbapply::pblapply(tblfls, function(x, variables) {
+        tabtemp <- suppressWarnings(data.table::fread(x, header=T, encoding="UTF-8", keepLeadingZeros=T))
+        tabtemp <- assignClasses(tabtemp, variables)
+        tabtemp <- makePosColumns(tabtemp, basename(x))
+        return(tabtemp)
+      }, variables=variables)
+      
+      stackedDf <- data.table::rbindlist(stackingList, fill=T)
+      
       data.table::fwrite(stackedDf, paste0(folder, "/stackedFiles/", tables[i], ".csv"),
                          nThread = nCores)
       
