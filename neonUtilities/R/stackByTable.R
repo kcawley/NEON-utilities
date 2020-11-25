@@ -229,6 +229,21 @@ stackByTable <- function(filepath, savepath=NA, folder=FALSE, saveUnzippedFiles=
   }
 
   if(envt==1) {
+    varInd <- grep("variables", names(stacklist))
+    if(length(varInd)!=1) {
+      cat("Variables file could not be identified. Data type assignment was not applied.\n")
+    } else {
+      v <- stacklist[[varInd]]
+      for(j in 1:length(stacklist)) {
+        if(length(grep("readme|variables|validation|categoricalCodes|sensor_positions", 
+                       names(stacklist)[j]))>0) {
+          next
+        } else {
+          stacklist[[j]] <- readTableNEON(stacklist[[j]], v)
+        }
+      }
+      
+    }
     return(stacklist)
   }
 

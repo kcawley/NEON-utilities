@@ -23,7 +23,7 @@
 readTableNEON <- function(dataFile, varFile){
   
   # read in variables file
-  if(class(varFile)=='character') {
+  if(identical(class(varFile), 'character')) {
     v <- utils::read.csv(varFile, header = T, stringsAsFactors = F)
   } else {
     v <- try(as.data.frame(varFile), silent=T)
@@ -50,7 +50,7 @@ readTableNEON <- function(dataFile, varFile){
   v <- v[, c("table", "fieldName", "colClass")]
   
   # read in data file
-  if(class(dataFile)=='character') {
+  if(identical(class(dataFile), 'character')) {
     d <- suppressWarnings(utils::read.csv(dataFile, header=T, stringsAsFactors=F,
                          colClasses=c(horizontalPosition='character', verticalPosition='character'),
                          na.strings=c('NA',''), encoding='UTF-8'))
@@ -73,17 +73,25 @@ readTableNEON <- function(dataFile, varFile){
   # fieldNames each have a unique dataType - don't need to match table
   for(i in names(d)) {
     if(!i %in% v$fieldName) {
-      d[,i] <- as.character(d[,i])
-    } else {
-      type <- v$colClass[which(v$fieldName==i)][1]
-      if(type=='numeric') {
-        d[,i] <- as.numeric(d[,i])
-      }
-      if(type=='character') {
+      if(class(d[,i])=="character") {
+        next
+      } else {
         d[,i] <- as.character(d[,i])
       }
-      if(type=='date') {
-        d[,i] <- dateConvert(d[,i])
+    } else {
+      type <- v$colClass[which(v$fieldName==i)][1]
+      if(class(d[,i])==type) {
+        next
+      } else {
+        if(type=='numeric') {
+          d[,i] <- as.numeric(d[,i])
+        }
+        if(type=='character') {
+          d[,i] <- as.character(d[,i])
+        }
+        if(type=='date') {
+          d[,i] <- dateConvert(d[,i])
+        }
       }
     }
   }
