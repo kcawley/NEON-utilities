@@ -35,6 +35,8 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
 
   messages <- character()
   
+  stacklist <- list()
+  
   # get the in-memory list of table types (site-date, site-all, etc.). This list must be updated often.
   #data("table_types")
   ttypes <- table_types[which(table_types$productID==dpID),]
@@ -137,8 +139,10 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
             return(outputj)
             }, filepaths=filepaths), fill=TRUE)
         
-        data.table::fwrite(outputLab, paste0(folder, "/stackedFiles/", labTables[j], ".csv"))
-        n <- n + 1
+          #data.table::fwrite(outputLab, paste0(folder, "/stackedFiles/", labTables[j], ".csv"))
+          stacklist[[length(stacklist)+1]] <- outputLab
+          names(stacklist)[[length(stacklist)]] <- labTables[j]
+          n <- n + 1
         }
       }
       tables <- setdiff(tables, labTables)
@@ -154,16 +158,22 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
     
     if(TRUE %in% stringr::str_detect(filepaths,'validation')) {
       valpath <- getRecentPublication(filepaths[grep("validation", filepaths)])[[1]]
-      file.copy(from = valpath, to = paste0(folder, "/stackedFiles/validation_", dpnum, ".csv"))
-      messages <- c(messages, "Copied the most recent publication of validation file to /stackedFiles")
+      #file.copy(from = valpath, to = paste0(folder, "/stackedFiles/validation_", dpnum, ".csv"))
+      #messages <- c(messages, "Copied the most recent publication of validation file to /stackedFiles")
+      val <- suppressWarnings(data.table::fread(valpath, sep=','))
+      stacklist[[length(stacklist)+1]] <- val
+      names(stacklist)[[length(stacklist)]] <- paste0("validation_", dpnum)
       m <- m + 1
     }
 
     # copy categoricalCodes file to /stackedFiles using the most recent publication date
     if(TRUE %in% stringr::str_detect(filepaths,'categoricalCodes')) {
       lovpath <- getRecentPublication(filepaths[grep("categoricalCodes", filepaths)])[[1]]
-      file.copy(from = lovpath, to = paste0(folder, "/stackedFiles/categoricalCodes_", dpnum, ".csv"))
-      messages <- c(messages, "Copied the most recent publication of categoricalCodes file to /stackedFiles")
+      #file.copy(from = lovpath, to = paste0(folder, "/stackedFiles/categoricalCodes_", dpnum, ".csv"))
+      #messages <- c(messages, "Copied the most recent publication of categoricalCodes file to /stackedFiles")
+      cc <- suppressWarnings(data.table::fread(lovpath, sep=','))
+      stacklist[[length(stacklist)+1]] <- cc
+      names(stacklist)[[length(stacklist)]] <- paste0("categoricalCodes_", dpnum)
       m <- m + 1
     }
     
@@ -187,8 +197,10 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
         return(outTbl)
       }, sensorPositionList=sensorPositionList), fill=TRUE)
       
-      data.table::fwrite(outputSensorPositions, paste0(folder, "/stackedFiles/sensor_positions_", dpnum, ".csv"))
-      messages <- c(messages, "Merged the most recent publication of sensor position files for each site and saved to /stackedFiles")
+      #data.table::fwrite(outputSensorPositions, paste0(folder, "/stackedFiles/sensor_positions_", dpnum, ".csv"))
+      #messages <- c(messages, "Merged the most recent publication of sensor position files for each site and saved to /stackedFiles")
+      stacklist[[length(stacklist)+1]] <- outputSensorPositions
+      names(stacklist)[[length(stacklist)]] <- paste0("sensor_positions_", dpnum)
       m <- m + 1
     }
     
@@ -243,8 +255,10 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
       
       stackedDf <- data.table::rbindlist(stackingList, fill=T)
       
-      data.table::fwrite(stackedDf, paste0(folder, "/stackedFiles/", tables[i], ".csv"),
-                         nThread = nCores)
+      #data.table::fwrite(stackedDf, paste0(folder, "/stackedFiles/", tables[i], ".csv"),
+      #                   nThread = nCores)
+      stacklist[[length(stacklist)+1]] <- stackedDf
+      names(stacklist)[[length(stacklist)]] <- tables[i]
       
       # add location and publication field names to variables file
       if(!is.null(vlist)) {
@@ -267,8 +281,10 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
     
     # write out complete variables file
     vfull <- data.table::rbindlist(vlist, fill=TRUE)
-    utils::write.csv(vfull, paste0(folder, "/stackedFiles/variables_", dpnum, ".csv"), row.names=F)
-    messages <- c(messages, "Copied the most recent publication of variable definition file to /stackedFiles")
+    #utils::write.csv(vfull, paste0(folder, "/stackedFiles/variables_", dpnum, ".csv"), row.names=F)
+    #messages <- c(messages, "Copied the most recent publication of variable definition file to /stackedFiles")
+    stacklist[[length(stacklist)+1]] <- vfull
+    names(stacklist)[[length(stacklist)]] <- paste0("variables_", dpnum)
     m <- m + 1
     
   }
@@ -277,5 +293,7 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
   writeLines(paste("Finished: Stacked", n, "data tables and", m, "metadata tables!"))
   endtime <- Sys.time()
   writeLines(paste0("Stacking took ", format((endtime-starttime), units = "auto")))
+  
+  return(stacklist)
   
 }

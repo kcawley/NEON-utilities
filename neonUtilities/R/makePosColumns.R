@@ -63,9 +63,8 @@ makePosColumns <- function(d, datafl, site){
       d <- cbind(siteID=rep(site, nrow(d)), d)
     } else {
       if(!("siteID" %in% names(d))){
-        d <- cbind(domainID = rep(as.character(unlist(datafl.splitName)[2]), nrow(d)),
-                   siteID = rep(as.character(unlist(datafl.splitName)[3]), nrow(d)),
-                   d)
+        d <- cbind(d, domainID = rep(as.character(unlist(datafl.splitName)[2]), nrow(d)),
+                   siteID = rep(as.character(unlist(datafl.splitName)[3]), nrow(d)))
       }
       d$horizontalPosition <- as.character(rep(as.character(datafl.splitName[[1]][horPos]), nrow(d)))
       d$verticalPosition <- as.character(rep(as.character(datafl.splitName[[1]][verPos]), nrow(d)))

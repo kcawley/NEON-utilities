@@ -66,18 +66,17 @@ getReadmePublicationDate <- function(savepath, out_filepath, dpID) {
   txt_file[I(dPackInd+5+nrow(tables))] <- 'If data are unavailable for the particular sites and dates queried, some tables may be absent.'
   txt_file <- txt_file[-c(qInd:I(dPackInd-2), I(dPackInd+6+nrow(tables)):I(downPackInd-1))]
 
-  cat("###################################\n", file = out_filepath_name)
-  cat("########### Disclaimer ############\n", file = out_filepath_name, append=TRUE)
-  cat('This is the most recent readme publication based on all site-date combinations used during stackByTable.\nInformation specific to the query, including sites and dates, has been removed. The remaining content reflects general metadata for the data product.\nAll files used during stacking are listed at the bottom of this document, which includes the data publication dates.\n', file = out_filepath_name, append=TRUE)
-  cat("##################################\n", file = out_filepath_name, append=TRUE)
-  cat("\n", file = out_filepath_name, append=TRUE)
-  readr::write_lines(txt_file, out_filepath_name, append=TRUE)
-  cat("\n", file = out_filepath_name, append=TRUE)
-  cat("POST STACKING README DOCUMENTATION\n", file = out_filepath_name, append=TRUE)
-  cat("----------------------------------\n", file = out_filepath_name, append=TRUE)
-  cat("\n", file = out_filepath_name, append=TRUE)
-  cat("Each row contains the readme filename used during stackByTable\n", file = out_filepath_name, append=TRUE)
-  cat("\n", file = out_filepath_name, append=TRUE)
-  utils::write.table(pub_date_df, file=out_filepath_name, sep=",", append=TRUE, row.names=FALSE, col.names=FALSE, quote = FALSE)
+  txt_file <- c("###################################\n", txt_file)
+  txt_file <- c("########### Disclaimer ############\n", txt_file)
+  txt_file <- c('This is the most recent readme publication based on all site-date combinations used during stackByTable.\nInformation specific to the query, including sites and dates, has been removed. The remaining content reflects general metadata for the data product.\nAll files used during stacking are listed at the bottom of this document, which includes the data publication dates.\n', txt_file)
+  txt_file <- c("##################################\n\n", txt_file)
+  #readr::write_lines(txt_file, out_filepath_name, append=TRUE)
+  txt_file <- c(txt_file, "\n")
+  txt_file <- c(txt_file, "POST STACKING README DOCUMENTATION\n")
+  txt_file <- c(txt_file, "----------------------------------\n\n")
+  txt_file <- c(txt_file, "Each row contains the readme filename used during stackByTable\n\n")
+  txt_file <- rbind(txt_file, pub_date_df)
+  #utils::write.table(pub_date_df, file=out_filepath_name, sep=",", append=TRUE, row.names=FALSE, col.names=FALSE, quote = FALSE)
+  return(txt_file)
   }
 }
