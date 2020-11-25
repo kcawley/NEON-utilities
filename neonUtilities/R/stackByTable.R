@@ -190,6 +190,7 @@ stackByTable <- function(filepath, savepath=NA, folder=FALSE, saveUnzippedFiles=
   stacklist <- stackDataFilesParallel(savepath, nCores, dpID)
   stacklist[[length(stacklist)+1]] <- getReadmePublicationDate(savepath, out_filepath = paste(savepath, "stackedFiles", sep="/"), dpID)
   names(stacklist)[length(stacklist)] <- paste0("readme_", substring(dpID, 5, 9))
+  stacklist <- stacklist[order(names(stacklist))]
 
   if(saveUnzippedFiles == FALSE){
     zipList <- zipList %>%
@@ -201,38 +202,34 @@ stackByTable <- function(filepath, savepath=NA, folder=FALSE, saveUnzippedFiles=
   }
   
   if(folder=="ls" & envt!=1) {
-    file.copy(paste(savepath, "stackedFiles", sep="/"), finalpath, recursive=T)
+    if(!dir.exists(paste0(finalpath, "/stackedFiles"))) {dir.create(paste0(finalpath, "/stackedFiles"))}
+    for(j in 1:length(stacklist)) {
+      if(length(grep("readme", names(stacklist)[j]))==0) {
+        data.table::fwrite(stacklist[[j]], paste0(finalpath, "/stackedFiles/", 
+                                                  names(stacklist)[j], ".csv"))
+      } else {
+        readr::write_lines(stacklist[[j]], paste0(finalpath, "/stackedFiles/", 
+                                                  names(stacklist)[j], ".txt"))
+      }
+    }
     unlink(savepath, recursive=T)
+  }
+  
+  if(folder!="ls" & envt!=1) {
+    if(!dir.exists(paste0(savepath, "/stackedFiles"))) {dir.create(paste0(savepath, "/stackedFiles"))}
+    for(j in 1:length(stacklist)) {
+      if(length(grep("readme", names(stacklist)[j]))==0) {
+        data.table::fwrite(stacklist[[j]], paste0(savepath, "/stackedFiles/", 
+                                                  names(stacklist)[j], ".csv"))
+      } else {
+        readr::write_lines(stacklist[[j]], paste0(savepath, "/stackedFiles/", 
+                                                  names(stacklist)[j], ".txt"))
+      }
+    }
   }
 
   if(envt==1) {
-
     return(stacklist)
-    # stacked_files <- list.files(paste(savepath, "stackedFiles", sep="/"), full.names = TRUE)
-    # v <- utils::read.csv(stacked_files[grep('variables', stacked_files)][1], header=T, stringsAsFactors=F)
-    # 
-    # stacked_list <- lapply(stacked_files, function(x) {
-    #   if(length(grep("sensor_position", basename(x)))>0) {
-    #     fls <- suppressWarnings(data.table::fread(x, sep=',', keepLeadingZeros = TRUE, colClasses = list(character = c('HOR.VER'))))
-    #   } else if(length(grep("readme", basename(x)))>0) {
-    #     fls <- suppressMessages(readr::read_table(x, col_names = FALSE))
-    #     } else if(length(grep("variables", basename(x)))>0 | length(grep("validation", basename(x)))>0 |
-    #               length(grep("categoricalCodes", basename(x)))>0) {
-    #       fls <- suppressWarnings(data.table::fread(x, sep=','))
-    #     } else {
-    #       fls <- try(readTableNEON(x, v), silent=T)
-    #       if(class(fls)=='try-error') {
-    #         fls <- suppressWarnings(data.table::fread(x, sep=','))
-    #       }
-    #       return(fls)
-    #   }
-    # })
-    # names(stacked_list) <- substring(basename(stacked_files), 1, nchar(basename(stacked_files))-4)
-    # 
-    # # remove temporary directory
-    # unlink(savepath, recursive=T)
-    # 
-    # return(stacked_list)
   }
 
 }
