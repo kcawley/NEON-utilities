@@ -242,7 +242,7 @@ stackDataFilesParallel <- function(folder, nCores=1, dpID){
         tabtemp <- assignClasses(tabtemp, variables)
         tabtemp <- makePosColumns(tabtemp, basename(x))
         return(tabtemp)
-      }, variables=variables)
+      }, variables=variables, cl=cl)
       
       stackedDf <- data.table::rbindlist(stackingList, fill=T)
       
