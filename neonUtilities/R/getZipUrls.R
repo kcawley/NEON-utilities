@@ -11,6 +11,7 @@
 #' @param avg Global variable for averaging interval
 #' @param package Global varaible for package type (basic or expanded)
 #' @param dpID Global variable for data product ID
+#' @param tabl Table name to get
 #' @param messages Error/warning messages from previous steps
 #' @param token User specific API token (generated within neon.datascience user accounts)
 
@@ -25,7 +26,7 @@
 
 ##############################################################################################
 
-getZipUrls <- function(month.urls, avg, package, dpID, messages, token = NA_character_) {
+getZipUrls <- function(month.urls, avg, package, dpID, messages, tabl, token = NA_character_) {
 
   writeLines("Finding available files")
   pb <- utils::txtProgressBar(style=3)
@@ -93,12 +94,18 @@ getZipUrls <- function(month.urls, avg, package, dpID, messages, token = NA_char
       next
     }
 
-    # if only one averaging interval is requested, filter by file names
-    if(avg!="all") {
+    # if only one averaging interval or one table is requested, filter by file names
+    if(avg!="all" | tabl!="all") {
 
       # select files by averaging interval
-      all.file <- union(grep(paste(avg, "min", sep=""), tmp.files[[i]]$data$files$name, fixed=T),
-                        grep(paste(avg, "_min", sep=""), tmp.files[[i]]$data$files$name, fixed=T))
+      if(avg!="all") {
+        all.file <- union(grep(paste(avg, "min", sep=""), tmp.files[[i]]$data$files$name, fixed=T),
+                          grep(paste(avg, "_min", sep=""), tmp.files[[i]]$data$files$name, fixed=T))
+      }
+      
+      if(tabl!="all") {
+        all.file <- grep(paste("[.]", tabl, "[.]", sep=""), tmp.files[[i]]$data$files$name)
+      }
 
       if(length(all.file)==0) {
         messages <- c(messages, paste("No files found for site", tmp.files[[i]]$data$siteCode,
@@ -122,10 +129,7 @@ getZipUrls <- function(month.urls, avg, package, dpID, messages, token = NA_char
 
       # subset to package
       which.file <- intersect(grep(pk, tmp.files[[i]]$data$files$name, fixed=T),
-                              union(grep(paste(avg, "min", sep=""),
-                                         tmp.files[[i]]$data$files$name, fixed=T),
-                                    grep(paste(avg, "_min", sep=""),
-                                         tmp.files[[i]]$data$files$name, fixed=T)))
+                              all.file)
 
       # check again for no files
       if(length(which.file)==0) {
@@ -222,6 +226,11 @@ getZipUrls <- function(month.urls, avg, package, dpID, messages, token = NA_char
   # check for no files
   if(is.null(nrow(zip.urls))) {
     writeLines(paste0(messages[-1], collapse = "\n"))
+    if(tabl!="all") {
+      stop(paste("No files found. Check that ", tabl, " is a valid table name in ", dpID, ".\n", 
+                 "If your query included only a small date range, there may be no data in range for the selected table.\n",
+                 "Or, your internet connection may have failed, or the API may be temporarily unavailable.", sep=""))
+    }
     stop(paste("No files found. This indicates either your internet connection failed, or the API is temporarily unavailable, or the data available for ",
                dpID,
                " are all hosted elsewhere. Check the data portal data.neonscience.org for outage alerts, and check the ",
