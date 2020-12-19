@@ -1,5 +1,3 @@
-utils::globalVariables(names = c("%>%", ".", "%--%", "%/%"))
-
 ##############################################################################################
 #' @title Scrape the publication date from each ReadMe file
 

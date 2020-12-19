@@ -1,7 +1,11 @@
+utils::globalVariables(names = c("%>%", ".", "%--%", "%/%"))
+
 #' Get NEON data table
 #'
 #'
 #' @author  Eric R. Sokol \email{esokol@battelleecology.org}
+#'
+#' @import readr tidyr
 #'
 #' @description This is a function to retrieve a data table
 #' from the NEON data portal for sites and dates provided by the
